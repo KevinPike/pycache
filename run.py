@@ -3,9 +3,9 @@ from pycache import CacheRouterResource, Cache
 from twisted.internet import reactor
 from twisted.web import server
 
-# Read host, port from config, server port
+import config
 
 
-site = server.Site(CacheRouterResource('localhost', 8880, '', Cache()))
-reactor.listenTCP(9090, site)
+site = server.Site(CacheRouterResource(config.host, config.port, '', Cache()))
+reactor.listenTCP(config.server, site)
 reactor.run()
