@@ -1,4 +1,4 @@
-from pycache.cache import CacheRouterResource, Cache
+from pycache import CacheRouterResource, Cache
 from tests.integration.fibonacci_server import FibonacciPage
 from twisted.internet import reactor
 from twisted.web.server import Site

@@ -1,7 +1,8 @@
-import os
 from time import sleep
 import unittest
 import subprocess
+
+import os
 
 from hamcrest import assert_that, is_
 
@@ -16,11 +17,15 @@ class TestCacheRouter(unittest.TestCase):
         self.p = subprocess.Popen(['python', "/".join([current_directory, 'run.py'])])
         self.external = 'http://localhost:1123/'
         self.cache = 'http://localhost:9090/'
+        tries = 0
         while True:
             try:
                 request('GET', self.external)
                 break
             except Exception:
+                tries += 1
+                if tries > 10:
+                    break
                 sleep(.5)
 
         request('POST', self.external)
