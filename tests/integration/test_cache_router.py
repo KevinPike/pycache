@@ -52,6 +52,10 @@ class TestCacheRouter(unittest.TestCase):
         assert_that(response.status_code, is_(200))
         assert_that(response.text, is_(str(0)))
 
+        response = request('GET', self.cache, headers={'cache-control': 'max-age=5'})
+        assert_that(response.status_code, is_(200))
+        assert_that(response.text, is_(str(0)))
+
         response = request('GET', self.cache, headers={'cache-control': 'max-age=0'})
         assert_that(response.status_code, is_(200))
         assert_that(response.text, is_(str(1)))

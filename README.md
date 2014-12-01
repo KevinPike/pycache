@@ -2,6 +2,10 @@
 
 A simple HTTP cache implemented using Twisted. Currently supports cache-control max-age and no-store. 
 
+### Usage
+
+Update the values in ```config.py``` and ```python run.py```.
+
 ### Development
 
 ```sh
