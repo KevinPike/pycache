@@ -9,6 +9,11 @@ from twisted.web.server import NOT_DONE_YET
 
 
 class CacheRouterResource(Resource):
+    """
+    Cache "router" that will read the cache-control header and attempt to send a response from cache.
+    Currently supports: no-store, max-age
+    """
+
     def __init__(self, host, port, path, cache=None, rct=reactor):
         Resource.__init__(self)
         self.host = host
@@ -18,29 +23,32 @@ class CacheRouterResource(Resource):
         self.reactor = rct
 
     def getChild(self, path, request):
-        cache_control = request.getAllHeaders().get('cache-control', "")
+        # Get the cache-control header
+        cache_control = request.getAllHeaders().get('cache-control', '')
         max_age = -1
         no_store = False
-        cache_controls = cache_control.split(',')
-        for key in cache_controls:
+        # Read the comma delimited cache control values
+        # We currently only support max-age and no-store.
+        # Ex: max-age=86400, no-store (results in a no-store)
+        for key in cache_control.split(','):
             if 'max-age' in key:
+                # max-age format: max-age=<seconds>
                 max_age_key = key.split('=')
-                assert 2 >= len(max_age_key) > 1, "Invalid cache-control max-age"
-                try:
-                    max_age = int(max_age_key[1])
-                except ValueError:
-                    pass
+                assert 2 >= len(max_age_key) > 1, 'max-age should be in the form max-age=<int>'
+                # TODO: Can raise ValueError
+                max_age = int(max_age_key[1])
             if 'no-store' in key:
                 no_store = True
+        # Do we want to use the cache?
         if max_age < 0 or no_store:
-            return NoCacheResource(self.host, self.port, self.path + '/' + urlquote(path, safe=""),
+            return NoCacheResource(self.host, self.port, self.path + '/' + urlquote(path, safe=''),
                                    self.reactor)
-
         return CacheResource(
-            self.host, self.port, self.path + '/' + urlquote(path, safe=""),
+            self.host, self.port, self.path + '/' + urlquote(path, safe=''),
             max_age, self.cache, self.reactor)
 
     def render(self, request):
+        """Should not be called. Render will be called on the resource returned by getChild"""
         raise NotImplementedError()
 
 
@@ -53,7 +61,16 @@ class BaseResource(Resource):
         self.reactor = rct
 
 
-class CacheResource(BaseResource):
+class LeafResource(object):
+    isLeaf = True
+
+    def getChild(self, path, request):
+        """Will not be called because this is a leaf"""
+        raise NotImplementedError()
+
+
+class CacheResource(BaseResource, LeafResource):
+    """Attempts to read the request from cache. Otherwise, gets the response and caches it"""
     cacheClientFactoryClass = CacheClientFactory
 
     def __init__(self, host, port, path, max_age, cache=None, rct=reactor):
@@ -62,6 +79,7 @@ class CacheResource(BaseResource):
         self.cache = cache or Cache()
 
     def getChild(self, path, request):
+        """Will not """
         raise NotImplementedError()
 
     def render(self, request):
@@ -83,14 +101,12 @@ class CacheResource(BaseResource):
             return NOT_DONE_YET
 
 
-class NoCacheResource(BaseResource):
+class NoCacheResource(BaseResource, LeafResource):
+    """Will not attempt to retrieve request from cache nor cache the response"""
     cacheClientFactoryClass = NoCacheClientFactory
 
     def __init__(self, host, port, path, rct=reactor):
         BaseResource.__init__(self, host, port, path, rct)
-
-    def getChild(self, path, request):
-        raise NotImplementedError()
 
     def render(self, request):
         request.content.seek(0, 0)

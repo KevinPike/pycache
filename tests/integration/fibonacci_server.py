@@ -12,6 +12,7 @@ def fib():
 
 
 class FibonacciPage(Resource):
+    """Simple fibonacci server for testing"""
     isLeaf = True
 
     def __init__(self):
@@ -22,6 +23,7 @@ class FibonacciPage(Resource):
         return '%s' % (self.fib.next(),)
 
     def render_POST(self, request):
+        """Reset the server"""
         self.fib.close()
         self.fib = fib()
         return ''
