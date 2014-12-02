@@ -1,6 +1,8 @@
 # PyCache
 
-A simple HTTP cache implemented using Twisted. Currently supports cache-control max-age and no-store. 
+A simple HTTP cache implemented using Twisted. Currently supports
+- cache-control headers: max-age and no-store
+- cache expiration clean up on interval
 
 ### Usage
 

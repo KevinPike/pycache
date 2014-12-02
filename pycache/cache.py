@@ -17,14 +17,20 @@ class CacheResponse(object):
             request.responseHeaders.setRawHeaders(header, self.responseHeaders.getRawHeaders(header))
 
 
+# TODO: Thread safe?
 class Cache(object):
     class Record(object):
         def __init__(self, data, timestamp=None):
             self.data = data
             self.timestamp = timestamp or datetime.utcnow()
 
-    def __init__(self):
+    def __init__(self, expiration):
+        """
+        :param expiration: maximum age of record in cache, in seconds
+        :return:
+        """
         self.cache = {}
+        self.expiration = expiration
 
     def put(self, path, data, timestamp=None):
         self.cache[path] = Cache.Record(data, timestamp)
@@ -48,3 +54,18 @@ class Cache(object):
     def get(self, path):
         record = self.cache.get(path)
         return record.data if record else None
+
+    def clean(self, current_time=None):
+        """
+        Removes all records that are older than expiration seconds
+        :param current_time: injectable for testing, otherwise current time
+        :return:
+        """
+        current_time = current_time or datetime.utcnow()
+        keys_to_remove = []
+        for key, record in self.cache.iteritems():
+            if (current_time - record.timestamp).total_seconds() > self.expiration:
+                keys_to_remove.append(key)
+
+        for key in keys_to_remove:
+            del self.cache[key]

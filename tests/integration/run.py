@@ -5,5 +5,5 @@ from twisted.web.server import Site
 
 # These ports should be OS chosen
 reactor.listenTCP(1123, Site(FibonacciPage()))
-reactor.listenTCP(9090, Site(CacheRouterResource('localhost', 1123, '', Cache())))
+reactor.listenTCP(9090, Site(CacheRouterResource('localhost', 1123, '', Cache(180000))))
 reactor.run()

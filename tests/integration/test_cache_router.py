@@ -11,8 +11,9 @@ from requests import request
 
 current_directory = os.path.dirname(os.path.realpath(__file__))
 
-# TODO: Use nose reactor instead.
+
 class TestCacheRouter(unittest.TestCase):
+    """Test running a external server and pointing the cache at it"""
     def setUp(self):
         self.p = subprocess.Popen(['python', "/".join([current_directory, 'run.py'])])
         self.external = 'http://localhost:1123/'

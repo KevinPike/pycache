@@ -1,3 +1,6 @@
 host = 'localhost'
-port = 8880
+port = 1123
 server = 9090
+
+timeout = 18000
+interval = 3600
